@@ -817,7 +817,7 @@ function delCookie(name)//删除cookie
         this.$("#usepack-list").empty();
         this.usepacks.fetch({
             reset:true,
-            data: { contact:this.model.get("id")},
+            data: { contact_id:this.model.get("id")},
             success:function(){
                 ////console.log(this.usepacks.length+" usepacks")
                 // this.$("#page").empty();
@@ -1406,7 +1406,7 @@ function delCookie(name)//删除cookie
       <div id="pack-info">
       <table>
       <tr><td>id：</td><td><%- id %></td></tr>
-      <tr><td>包名称：</td><td><%- name %></td></tr>
+      <tr><td>包名称：</td><td><%- Pack.name %></td></tr>
       </table>
       </div>
       <table  class="table-bordered" >

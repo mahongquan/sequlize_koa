@@ -1,29 +1,29 @@
-var models  = require('../models');
+var models = require('../models');
 //var express = require('express');
-var router  = require('express').Router();
+var router = require('express').Router();
 router.get('/', function(req, res) {
   models.Item.findAll().then(function(items) {
-     var pageinfo={
-      previous_page_number:1,
-      number:2,
-      num_pages:10,
-      next_page_number:3,
-      has_previous:true,
-      has_next:true,
-     };
-     res.render('parts/items', {
+    var pageinfo = {
+      previous_page_number: 1,
+      number: 2,
+      num_pages: 10,
+      next_page_number: 3,
+      has_previous: true,
+      has_next: true,
+    };
+    res.render('parts/items', {
       items: items,
-      pageinfo:pageinfo
+      pageinfo: pageinfo
     });
   });
-});//query
+}); //query
 router.post('/', function(req, res) {
   models.Item.create({
     yonghu: req.body.yonghu
   }).then(function() {
     res.redirect('/parts');
   });
-});//create
+}); //create
 
 router.put('/:contact_id', function(req, res) {
   //console.log(req.body);
@@ -31,16 +31,15 @@ router.put('/:contact_id', function(req, res) {
     packitem.update(req.body);
     packitem.save();
   });
-});//update
+}); //update
 
-router.delete('/', function (req, res) {
+router.delete('/', function(req, res) {
   models.Task.create({
     title: req.body.title,
     ContactId: req.params.contact_id
   }).then(function() {
     res.redirect('/parts');
   });
-});//delete
+}); //delete
 
 module.exports = router;
-
