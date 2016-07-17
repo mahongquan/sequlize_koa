@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+var debug = require('debug')('express-example');
+var app = require('../app1');
+var models = require("../models");
+console.log(app);
+
+models.sequelize.sync().then(
+	function () {
+		console.log("listen");
+  		app.listen(8000);
+	}
+);
