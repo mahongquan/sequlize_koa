@@ -1,1 +1,1 @@
-node_modules\.bin\supervisor bin\www
+node_modules\.bin\nodemon www.js

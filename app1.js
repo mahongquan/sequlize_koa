@@ -1,7 +1,6 @@
 var koa = require('koa');
 var app = koa();
 var render = require('koa-swig');
-var app = koa();
 var path = require('path');
 var route = require('koa-route');
 var serve = require('koa-static');
