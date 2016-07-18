@@ -19,6 +19,12 @@ app.context.render = render({
 });
 app.use(bodyParser());
 app.use(serve(__dirname + '/public'));
+app.use(route.post('/parts/copypack', function*() {
+	this.body="copy not ok";
+}));
+app.use(route.get('/parts/copypack', function*() {
+	yield this.render('parts/copypack');
+}));
 app.use(route.get('/parts/items', function*() {
 	var page = "1" && this.request.query.page;
 	page=parseInt(page);
