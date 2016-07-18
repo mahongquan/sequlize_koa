@@ -19,6 +19,42 @@ app.context.render = render({
 });
 app.use(bodyParser());
 app.use(serve(__dirname + '/public'));
+app.use(route.get('/parts/items', function*() {
+	var page = "1" && this.request.query.page;
+	page=parseInt(page);
+	if(isNaN(page)) page=1;
+	var limit=9;
+	var w={};
+	var datas = yield models.Item.findAll({
+			attributes: [
+				[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
+			],
+			//where: w
+		})
+	var total = datas[0].dataValues.total;
+	console.log(total);
+	var pageinfo={};
+	var start=(page-1)*limit;
+	var items = yield models.Item.findAll({
+		where: w,
+		limit: limit,
+		offset: start,
+	})
+	//if (start<)	
+	pageinfo.number=page;
+	pageinfo.num_pages=Math.ceil(total / limit);//previous_page_number,next_page_number,has_previous,has_next
+	console.log(pageinfo.num_pages);
+	pageinfo.has_previous=true;
+	pageinfo.has_next=true;
+	if(pageinfo.number==pageinfo.num_pages)
+		pageinfo.has_next=false;
+    if(pageinfo.number==1)
+		pageinfo.has_previous=false;
+	pageinfo.previous_page_number=pageinfo.number-1;
+	pageinfo.next_page_number=pageinfo.number+1;
+
+	yield this.render('parts/items',{items:items,pageinfo:pageinfo});
+}));
 app.use(route.get('/rest/backbone', function*() {
 	yield this.render('rest/backbone');
 }));
