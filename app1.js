@@ -19,7 +19,11 @@ app.context.render = render({
 });
 app.use(bodyParser());
 app.use(serve(__dirname + '/public'));
+app.use(route.get('/', function*() {
+	this.redirect('/rest/backbone');
+}));
 app.use(route.post('/parts/copypack', function*() {
+	console.log(this.request.body);
 	this.body="copy not ok";
 }));
 app.use(route.get('/parts/copypack', function*() {
