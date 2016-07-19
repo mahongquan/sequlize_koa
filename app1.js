@@ -19,6 +19,24 @@ app.context.render = render({
 });
 app.use(bodyParser());
 app.use(serve(__dirname + '/public'));
+app.use(route.get('/parts/zhuangxiangdan/', function*() {
+	this.body = {
+		data: ["hi zhuangxiangdan"],
+		message: "create Contact ok"
+	};
+}));
+app.use(route.get('/parts/tar', function*() {
+	this.body = {
+		data: ["hi tar"],
+		message: "create Contact ok"
+	};
+}));
+app.use(route.get('/parts/showcontact/', function*() {
+	this.body = {
+		data: ["hi"],
+		message: "create Contact ok"
+	};
+}));
 app.use(route.get('/', function*() {
 	this.redirect('/rest/backbone');
 }));
