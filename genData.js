@@ -1,8 +1,6 @@
+"use strict";
+var all={}
 var vsprintf = require("sprintf-js").vsprintf
-// var a=sprintf("%2$s %3$s a %1$s", "cracker", "Polly", "wants")
-// console.log(a);
-// var a=vsprintf("The first 4 letters of the english alphabet are: %s, %s, %s and %s", ["a", "b", "c", "d"])
-// console.log(a);
 function myStdev(a){
     var t=0;
     for(var i in a){
@@ -24,7 +22,7 @@ function getRound(stdconc){//几位小数
     else{
         a=""+stdconc;
     }
-    at=a.indexOf(".");
+    var at=a.indexOf(".");
     return a.length-1-at;
 }
 function geteleRsd(ele,stdconc){
@@ -69,8 +67,8 @@ function genOneR(ele,stdconc){
     while(!ok){
         var data=stdconc-2*sd+Math.random()*4*sd;
         //console.log(data);
-        test=myround(data,roundws);
-        err=(test-stdconc)/stdconc;
+        var test=myround(data,roundws);
+        var err=(test-stdconc)/stdconc;
         //print(test,sd,rsd,err)
         if(Math.abs(err)<0.00001)
             ok=false
@@ -82,55 +80,59 @@ function genOneR(ele,stdconc){
             break;
         }
     }
-    fmt="%0."+roundws+"f"
-    test_str=vsprintf(fmt, [test])
+    var fmt="%0."+roundws+"f"
+    var test_str=vsprintf(fmt, [test])
     //test_str=fmt % test
-    err_str=vsprintf("%0.2f" ,[err*100])
+    var err_str=vsprintf("%0.2f" ,[err*100])
     return [test_str,err_str]
 }
-// def genOne(ele,stdconc):
-//     print(stdconc)
-//     roundws=getRound(stdconc)
-//     rsd=geteleRsd(ele,stdconc)#0.005
-//     stdconc=float(stdconc)
-//     sd=stdconc*rsd
-//     ok=False
-//     loop=0
-//     while not ok:
-//         test=round(stdconc-2*sd+random.random()*4*sd,roundws)
-//         err=test-stdconc
-//         print(test,stdconc,sd)
-//         if abs(err)<0.0000001:
-//             ok=False
-//         else:
-//             ok=True
-//         loop+=1
-//         if loop==10:
-//             break
-//     fmt="%0."+str(roundws)+"f"
-//     print(fmt)
-//     test_str=fmt % test
-//     err_str=fmt % err
-//     return (test_str,err_str)
-// def genjmd(stdconc,rsd):
-//     roundws=getRound(stdconc)
-//     stdconc=float(stdconc)
-//     sd=stdconc*rsd
-//     rs=[]
-//     rv=[]
-//     fmt="%0."+str(roundws)+"f"
-//     for i in range(7):
-//         test=round(stdconc-2*sd+random.random()*4*sd,roundws)
-//         test_str=fmt % test
-//         rs.append(test_str)
-//         rv.append(float(test_str))
-//     print(rv)
-//     ave=numpy.average(rv)
-//     sd=myStdev(rv)
-//     ave_str=fmt % ave
-//     rsd1=sd/ave*100
-//     rsd_str="%0.2f" % rsd1
-//     return (rs,ave_str,rsd_str)
+function genOne(ele,stdconc){
+    console.log(stdconc)
+    var roundws=getRound(stdconc)
+    var rsd=geteleRsd(ele,stdconc)//0.005
+    var stdconc=float(stdconc)
+    var sd=stdconc*rsd
+    var ok=false
+    var loop=0
+    while(!ok){
+        test=round(stdconc-2*sd+random.random()*4*sd,roundws)
+        err=test-stdconc
+        print(test,stdconc,sd)
+        if (Math.abs(err)<0.0000001)
+            ok=false;
+        else
+            ok=true;
+        loop+=1
+        if(loop==10)
+            break;
+    }
+    fmt="%0."+str(roundws)+"f"
+    print(fmt)
+    test_str=fmt % test
+    err_str=fmt % err
+    return (test_str,err_str)
+}
+function genjmd(stdconc,rsd){
+    var roundws=getRound(stdconc);
+    var stdconc=float(stdconc);
+    var sd=stdconc*rsd;
+    var rs=[];
+    var rv=[];
+    var fmt="%0."+str(roundws)+"f"
+    for(var  i=0;i<6;i++){
+        test=round(stdconc-2*sd+random.random()*4*sd,roundws)
+        test_str=fmt % test
+        rs.append(test_str)
+        rv.append(float(test_str))
+    }
+    print(rv)
+    ave=numpy.average(rv)
+    sd=myStdev(rv)
+    ave_str=fmt % ave
+    rsd1=sd/ave*100
+    rsd_str="%0.2f" % rsd1
+    return (rs,ave_str,rsd_str)
+}
 // def genTest(eles,stds):
 //     tests=[]
 //     errs=[]
@@ -151,3 +153,4 @@ console.log(myStdev([1,2]))
 console.log(getRound("312.455"))
 console.log(geteleRsd("C",3.36))
 console.log(genOneR("C",3.36))
+module.exports =all;

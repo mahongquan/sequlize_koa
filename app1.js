@@ -1,59 +1,59 @@
 var koa = require('koa');
-var app = koa();
-var render = require('koa-swig');
+var app =new koa();
+var swig = require('swig');
 var path = require('path');
-var route = require('koa-route');
+var Route = require('koa-router');
+var route=new Route();
 var serve = require('koa-static');
 var models = require('./models');
 var bodyParser = require('koa-bodyparser');
-
-app.context.render = render({
-	root: path.join(__dirname, 'templates'),
-	autoescape: true,
-	cache: 'memory', // disable, set to false 
-	ext: 'html',
-	// locals: locals,
-	// filters: filters,
-	// tags: tags,
-	// extensions: extensions
-});
 app.use(bodyParser());
 app.use(serve(__dirname + '/public'));
-app.use(route.get('/parts/zhuangxiangdan/', function*() {
-	this.body = {
+route.get('/parts/zhuangxiangdan/', function(ctx) {
+	ctx.body = {
 		data: ["hi zhuangxiangdan"],
 		message: "create Contact ok"
 	};
-}));
-app.use(route.get('/parts/tar', function*() {
-	this.body = {
+});
+route.get('/parts/tar', function(ctx) {
+	ctx.body = {
 		data: ["hi tar"],
 		message: "create Contact ok"
 	};
-}));
-app.use(route.get('/parts/showcontact/', function*() {
-	this.body = {
+});
+route.get('/parts/showcontact/', function(ctx) {
+	ctx.body = {
 		data: ["hi"],
 		message: "create Contact ok"
 	};
-}));
-app.use(route.get('/', function*() {
-	this.redirect('/rest/backbone');
-}));
-app.use(route.post('/parts/copypack', function*() {
-	console.log(this.request.body);
-	this.body="copy not ok";
-}));
-app.use(route.get('/parts/copypack', function*() {
-	yield this.render('parts/copypack');
-}));
-app.use(route.get('/parts/items', function*() {
-	var page = "1" && this.request.query.page;
+});
+route.get('/', function(ctx) {
+	ctx.redirect('/parts/tar');
+});
+route.post('/parts/copypack', function(ctx) {
+	console.log(ctx.request.body);
+	ctx.body="copy not ok";
+});
+var render=function(ctx,tn,dict){
+	var p=path.join(__dirname, 'templates');
+	p=path.join(p, tn+'.html');
+	var template = swig.compileFile(p);
+	var output = template(dict);
+	ctx.body=output;
+}
+route.get('/parts/copypack', function(ctx,next) {
+	render(ctx,"parts/copypack");
+});
+route.get('/rest/backbone', function(ctx,next) {
+	render(ctx,"rest/backbone");
+});
+route.get('/parts/items', async function(ctx,next) {
+	var page = "1" && ctx.request.query.page;
 	page=parseInt(page);
 	if(isNaN(page)) page=1;
 	var limit=9;
 	var w={};
-	var datas = yield models.Item.findAll({
+	var datas = await models.Item.findAll({
 			attributes: [
 				[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 			],
@@ -63,7 +63,7 @@ app.use(route.get('/parts/items', function*() {
 	console.log(total);
 	var pageinfo={};
 	var start=(page-1)*limit;
-	var items = yield models.Item.findAll({
+	var items = await models.Item.findAll({
 		where: w,
 		limit: limit,
 		offset: start,
@@ -81,43 +81,41 @@ app.use(route.get('/parts/items', function*() {
 	pageinfo.previous_page_number=pageinfo.number-1;
 	pageinfo.next_page_number=pageinfo.number+1;
 
-	yield this.render('parts/items',{items:items,pageinfo:pageinfo});
-}));
-app.use(route.get('/rest/backbone', function*() {
-	yield this.render('rest/backbone');
-}));
+	await render(ctx,'parts/items',{items:items,pageinfo:pageinfo});
+});
+
 //Contact//////////////////////////////////////////////////////////////////////
-app.use(route.delete('/rest/Contact/:contact_id', function*(contact_id) {
-	var contact = yield models.Contact.findById(contact_id); //.then(function(packitem) {
+route.delete('/rest/Contact/:contact_id', async function(ctx,next) {
+	var contact = await models.Contact.findById(ctx.params.contact_id); //.then(function(packitem) {
 	contact.destroy();
-	this.body = {
+	ctx.body = {
 		data: [],
 		message: "delete Contact ok"
 	};
-})); //delete
-app.use(route.post('/rest/Contact', function*() {
-	var contact = yield models.Contact.create(this.request.body)
-	this.body = {
+}); //delete
+route.post('/rest/Contact', async function(ctx,next) {
+	var contact =await models.Contact.create(ctx.request.body)
+	ctx.body = {
 		data: contact,
 		message: "create Contact ok"
 	};
-}));
-app.use(route.put('/rest/Contact', function*() {
-	var contact = yield models.Contact.findById(this.request.body.id); //.then(function(packitem) {
-	contact.update(this.request.body);
+});
+route.put('/rest/Contact', async function(ctx,next) {
+	var contact = await models.Contact.findById(ctx.request.body.id); //.then(function(packitem) {
+	contact.update(ctx.request.body);
 	contact.save();
-	this.body = {
+	ctx.body = {
 		data: contact,
 		message: "update  Contact ok"
 	};
-}));
-app.use(route.get('/rest/Contact', function*() {
-	var start = this.request.query.start;
-	var limit = this.request.query.limit;
-	var search = this.request.query.search;
+});
+route.get('/rest/Contact', async function(ctx,next) {
+	var start = ctx.request.query.start;
+	var limit = ctx.request.query.limit;
+	var search = ctx.request.query.search;
 	var baoxiang = '';
-	if (this.request.query.baoxiang) {
-		baoxiang = this.request.query.baoxiang;
+	if (ctx.request.query.baoxiang) {
+		baoxiang = ctx.request.query.baoxiang;
 	}
 	var w = null;
 	if (search != "") {
@@ -159,61 +157,61 @@ app.use(route.get('/rest/Contact', function*() {
 		}
 	}
 	console.log(w);
-	var datas = yield models.Contact.findAll({
+	var datas = await models.Contact.findAll({
 			attributes: [
 				[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 			],
 			where: w
 		})
-		//this.body=datas;
+		//ctx.body=datas;
 	var total = datas[0].dataValues.total;
 	console.log("total=" + total);
-	var contacts = yield models.Contact.findAll({
+	var contacts = await models.Contact.findAll({
 		where: w,
 		limit: limit,
 		offset: start,
 		order: 'yujifahuo_date DESC'
 	})
-	this.body = {
+	ctx.body = {
 		data: contacts,
 		total: total
 	};
-}));
+});
 //UsePack//////////////////////////////////////////////////////////////////////
-app.use(route.delete('/rest/UsePack/:contact_id', function*(contact_id) {
-	var contact = yield models.UsePack.findById(contact_id); //.then(function(packitem) {
+route.delete('/rest/UsePack/:contact_id', async function(ctx) {
+	var contact = await models.UsePack.findById(ctx.params.contact_id); //.then(function(packitem) {
 	contact.destroy();
-	this.body = {
+	ctx.body = {
 		data: [],
 		message: "delete UsePack ok"
 	};
-})); //delete
-app.use(route.post('/rest/UsePack', function*() {
-	var contact = yield models.UsePack.create(this.request.body)
-	var pack = yield contact.getPack();
+}); //delete
+route.post('/rest/UsePack', async function(ctx,next) {
+	var contact = await models.UsePack.create(ctx.request.body)
+	var pack = await contact.getPack();
 	contact.dataValues["Pack"] = pack;
-	this.body = {
+	ctx.body = {
 		data: contact,
 		message: "create UsePack ok"
 	};
-}));
-app.use(route.put('/rest/UsePack', function*() {
-	var contact = yield models.UsePack.findById(this.request.body.id); //.then(function(packitem) {
-	contact.update(this.request.body);
+});
+route.put('/rest/UsePack', async function(ctx,next) {
+	var contact = await models.UsePack.findById(ctx.request.body.id); //.then(function(packitem) {
+	contact.update(ctx.request.body);
 	contact.save();
-	this.body = {
+	ctx.body = {
 		data: contact,
 		message: "update  UsePack ok"
 	};
-}));
-app.use(route.get('/rest/UsePack', function*() {
-	var start = this.request.query.start;
-	var limit = this.request.query.limit;
-	var search = this.request.query.search;
+});
+route.get('/rest/UsePack', async function(ctx,next) {
+	var start = ctx.request.query.start;
+	var limit = ctx.request.query.limit;
+	var search = ctx.request.query.search;
 	var w = {
-		contact_id: this.request.query.contact_id
+		contact_id: ctx.request.query.contact_id
 	};
-	var datas = yield models.UsePack.findAll({
+	var datas = await models.UsePack.findAll({
 		attributes: [
 			[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 		],
@@ -221,7 +219,7 @@ app.use(route.get('/rest/UsePack', function*() {
 	})
 	var total = datas[0].dataValues.total;
 	console.log("total=" + total);
-	var contacts = yield models.UsePack.findAll({
+	var contacts = await models.UsePack.findAll({
 		where: w,
 		limit: limit,
 		offset: start,
@@ -229,64 +227,66 @@ app.use(route.get('/rest/UsePack', function*() {
 			model: models.Pack,
 		}],
 	})
-	this.body = {
+	ctx.body = {
 		data: contacts,
 		total: total
 	};
-}));
+});
 //PackItem//////////////////////////////////////////////////////////////////////
-app.use(route.delete('/rest/PackItem/:contact_id', function*(contact_id) {
-	var contact = yield models.PackItem.findById(contact_id); //.then(function(packitem) {
+route.delete('/rest/PackItem/:contact_id',  async function(ctx,contact_id) {
+	var contact = await models.PackItem.findById(ctx.params.contact_id); //.then(function(packitem) {
 	contact.destroy();
-	this.body = {
+	ctx.body = {
 		data: [],
 		message: "delete PackItem ok"
 	};
-})); //delete
-app.use(route.post('/rest/PackItem', function*() {
-	var contact = yield models.PackItem.create(this.request.body)
-	var pack = yield contact.getItem();
+}); //delete
+route.post('/rest/PackItem', async function(ctx,next) {
+	var contact = await models.PackItem.create(ctx.request.body)
+	var pack = await contact.getItem();
 	contact.dataValues["Item"] = pack;
-	this.body = {
+	ctx.body = {
 		data: contact,
 		message: "create UsePack ok"
 	};
-}));
-app.use(route.put('/rest/PackItem/:id', function*(id) {
-	//console.log(req.body);
-	var packitem = yield models.PackItem.findById(id, {
+});
+route.put('/rest/PackItem/:id',async  function(ctx,next) {
+	console.log(ctx);
+	console.log(next);
+	console.log(ctx.params.id);
+	var packitem = await models.PackItem.findById(ctx.params.id, {
 		include: [{
 			model: models.Item,
 		}],
 	}); //.then(function(packitem) {
 	console.log("==============================");
 	console.log(packitem);
-	packitem.update(this.request.body);
+	packitem.update(ctx.request.body);
 	packitem.Item.save();
 	packitem.save();
 	console.log(packitem);
-	this.body = {
+	ctx.body = {
 		data: packitem,
 		message: "update packitem ok"
 	};
-})); //update
-// app.use(route.put('/rest/PackItem/:id', function*(id) {
-// 	var contact = yield models.PackItem.findById(id); //.then(function(packitem) {
-// 	contact.update(this.request.body);
+}); //update
+// route.put('/rest/PackItem/:id', function*(id) {
+// 	var contact = await models.PackItem.findById(id); //.then(function(packitem) {
+// 	contact.update(ctx.request.body);
 // 	contact.save();
-// 	this.body = {
+// 	ctx.body = {
 // 		data: contact,
 // 		message: "update  PackItem ok"
 // 	};
 // }));
-app.use(route.get('/rest/PackItem', function*() {
-	var start = this.request.query.start;
-	var limit = this.request.query.limit;
-	var search = this.request.query.search;
+route.get('/rest/PackItem', async function(ctx,next) {
+	var start = ctx.request.query.start;
+	var limit = ctx.request.query.limit;
+	var search = ctx.request.query.search;
 	var w = {
-		pack_id: this.request.query.pack_id
+		pack_id: ctx.request.query.pack_id
 	};
-	var datas = yield models.PackItem.findAll({
+	var datas = await models.PackItem.findAll({
 		attributes: [
 			[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 		],
@@ -294,7 +294,7 @@ app.use(route.get('/rest/PackItem', function*() {
 	})
 	var total = datas[0].dataValues.total;
 	console.log("total=" + total);
-	var contacts = yield models.PackItem.findAll({
+	var contacts = await models.PackItem.findAll({
 		where: w,
 		limit: limit,
 		offset: start,
@@ -302,24 +302,24 @@ app.use(route.get('/rest/PackItem', function*() {
 			model: models.Item,
 		}],
 	})
-	this.body = {
+	ctx.body = {
 		data: contacts,
 		total: total
 	};
-}));
+});
 //Pack
-app.use(route.post('/rest/Pack', function*() {
-	var data = yield models.Pack.create(this.request.body);
-	this.body = {
+route.post('/rest/Pack', async function(ctx,next) {
+	var data = await models.Pack.create(ctx.request.body);
+	ctx.body = {
 		data: data,
 		message: "create pack ok"
 	};
-}));
-app.use(route.get('/rest/Pack', function*() {
-	console.log(this.request.query);
-	var start = this.request.query.start;
-	var limit = this.request.query.limit;
-	var search = this.request.query.search;
+});
+route.get('/rest/Pack', async function(ctx,next) {
+	console.log(ctx.request.query);
+	var start = ctx.request.query.start;
+	var limit = ctx.request.query.limit;
+	var search = ctx.request.query.search;
 	var w = null;
 	if (search && search != "") {
 		w = {
@@ -331,7 +331,7 @@ app.use(route.get('/rest/Pack', function*() {
 		w = {};
 	}
 	console.log(w);
-	var datas = yield models.Pack.findAll({
+	var datas = await models.Pack.findAll({
 		attributes: [
 			[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 		],
@@ -339,36 +339,36 @@ app.use(route.get('/rest/Pack', function*() {
 	});
 	var total = datas[0].dataValues.total;
 	console.log("total=" + total);
-	var contacts = yield models.Pack.findAll({
+	var contacts = await models.Pack.findAll({
 		where: w,
 		limit: limit,
 		offset: start
 	});
 	if (contacts.length > 0) {
-		this.body = {
+		ctx.body = {
 			data: contacts,
 			total: total
 		};
 	} else {
-		this.body = {
+		ctx.body = {
 			data: contacts,
 			total: 0
 		};
 	}
-}));
+});
 //Item
-app.use(route.post('/rest/Item', function*() {
-	var data = yield models.Item.create(this.request.body);
-	this.body = {
+route.post('/rest/Item', async function(ctx,next) {
+	var data = await models.Item.create(ctx.request.body);
+	ctx.body = {
 		data: data,
 		message: "create item ok"
 	};
-}));
-app.use(route.get('/rest/Item', function*() {
-	console.log(this.request.query);
-	var start = this.request.query.start;
-	var limit = this.request.query.limit;
-	var search = this.request.query.search;
+});
+route.get('/rest/Item', async function(ctx,next) {
+	console.log(ctx.request.query);
+	var start = ctx.request.query.start;
+	var limit = ctx.request.query.limit;
+	var search = ctx.request.query.search;
 	var w = null;
 	if (search && search != "") {
 		w = {
@@ -380,7 +380,7 @@ app.use(route.get('/rest/Item', function*() {
 		w = {};
 	}
 	console.log(w);
-	var datas = yield models.Item.findAll({
+	var datas = await models.Item.findAll({
 		attributes: [
 			[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
 		],
@@ -388,21 +388,24 @@ app.use(route.get('/rest/Item', function*() {
 	});
 	var total = datas[0].dataValues.total;
 	console.log("total=" + total);
-	var contacts = yield models.Item.findAll({
+	var contacts = await models.Item.findAll({
 		where: w,
 		limit: limit,
 		offset: start
 	});
 	if (contacts.length > 0) {
-		this.body = {
+		ctx.body = {
 			data: contacts,
 			total: total
 		};
 	} else {
-		this.body = {
+		ctx.body = {
 			data: contacts,
 			total: 0
 		};
 	}
-}));
+});
+app
+  .use(route.routes())
+  .use(route.allowedMethods());
 module.exports = app;
