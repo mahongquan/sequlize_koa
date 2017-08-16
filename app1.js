@@ -8,7 +8,7 @@ var serve = require('koa-static');
 var models = require('./models');
 var bodyParser = require('koa-bodyparser');
 app.use(bodyParser());
-app.use(serve(__dirname + '/public'));
+//
 route.get('/parts/zhuangxiangdan/', function(ctx) {
 	ctx.body = {
 		data: ["hi zhuangxiangdan"],
@@ -37,6 +37,7 @@ route.post('/parts/copypack', function(ctx) {
 var render=function(ctx,tn,dict){
 	var p=path.join(__dirname, 'templates');
 	p=path.join(p, tn+'.html');
+	console.log(p);
 	var template = swig.compileFile(p);
 	var output = template(dict);
 	ctx.body=output;
@@ -408,4 +409,5 @@ route.get('/rest/Item', async function(ctx,next) {
 app
   .use(route.routes())
   .use(route.allowedMethods());
+app.use(serve(__dirname + '/public'));  
 module.exports = app;
