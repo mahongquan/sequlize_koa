@@ -7,7 +7,52 @@ console.log(app);
 
 models.sequelize.sync().then(
 	function () {
-		console.log("listen");
-  		app.listen(8000);
+  		var server=app.listen(8000);
+  		var io = require('socket.io')(server);
+  		io.sockets.on('connection', function( socket ) {
+  			console.log('connection');
+			/**
+			 * When a player enters a room
+			 * @param object table-data
+			 */
+			socket.on('/get/UsePack', async function( data, callback ) {
+					console.log(data)
+					var start = data.start;
+					var limit = data.limit;
+					var search = data.search;
+					var w = {
+						contact_id:data.contact_id
+					};
+					var datas = await models.UsePack.findAll({
+						attributes: [
+							[models.sequelize.fn('COUNT', models.sequelize.col('id')), 'total'],
+						],
+						where: w
+					})
+					var total = datas[0].dataValues.total;
+					console.log("total=" + total);
+					var contacts = await models.UsePack.findAll({
+						where: w,
+						limit: limit,
+						offset: start,
+						include: [{
+							model: models.Pack,
+						}],
+					})
+				callback( { 'success': true ,
+						data: contacts,
+						total: total} );
+			});
+
+			socket.on('enterRoom', function( tableId ) {
+				if( typeof players[socket.id] !== 'undefined' && players[socket.id].room === null ) {
+					// Add the player to the socket room
+					socket.join( 'table-' + tableId );
+					// Add the room to the player's data
+					players[socket.id].room = tableId;
+				}
+			});
+
+		});
 	}
 );
