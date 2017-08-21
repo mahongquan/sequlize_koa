@@ -8,6 +8,9 @@ console.log(app);
 models.sequelize.sync().then(
 	function () {
 		console.log("listen");
-  		app.listen(8000);
+  		const server =app.listen(8000, () => {
+		    console.log('Server listening at port 8000');
+		});
+		const io = require('socket.io')(server);
 	}
 );
