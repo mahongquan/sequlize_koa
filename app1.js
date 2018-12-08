@@ -28,7 +28,7 @@ route.get('/parts/showcontact/', function(ctx) {
 	};
 });
 route.get('/', function(ctx) {
-	ctx.redirect('/parts/tar');
+	ctx.redirect('/rest/backbone');
 });
 route.post('/parts/copypack', function(ctx) {
 	console.log(ctx.request.body);
@@ -171,7 +171,7 @@ route.get('/rest/Contact', async function(ctx,next) {
 		where: w,
 		limit: limit,
 		offset: start,
-		order: 'yujifahuo_date DESC'
+		order: [['yujifahuo_date', 'DESC']]
 	})
 	ctx.body = {
 		data: contacts,
