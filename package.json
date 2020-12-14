@@ -16,17 +16,17 @@
     "koa": "latest",
     "koa-bodyparser": "latest",
     "koa-route": "latest",
-    "koa-router":"latest",
+    "koa-router": "latest",
     "koa-static": "latest",
     "koa-swig": "latest",
     "morgan": "latest",
+    "nunjucks": "latest",
     "pug": "latest",
     "sequelize": "latest",
     "sequelize-cli": "latest",
     "serve-favicon": "latest",
     "socket.io": "latest",
     "sprintf-js": "latest",
-    "sqlite3": "latest",
-    "swig": "latest"
+    "sqlite3": "latest"
   }
 }

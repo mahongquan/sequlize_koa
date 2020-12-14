@@ -1,4 +1,4 @@
-"swig":"1.4.2"
+"nunjucks": "^3.2.2"
 "koa-bodyparser":"4.3.0"
 "koa-static":"5.0.0"
 "pug":"3.0.0"

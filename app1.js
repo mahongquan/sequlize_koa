@@ -1,6 +1,6 @@
 var koa = require('koa');
 var app =new koa();
-var swig = require('swig');
+var nunjucks= require('nunjucks');
 var path = require('path');
 var Route = require('koa-router');
 var route=new Route();
@@ -9,6 +9,7 @@ var models = require('./models');
 var bodyParser = require('koa-bodyparser');
 app.use(bodyParser());
 //
+
 route.get('/parts/zhuangxiangdan/', function(ctx) {
 	ctx.body = {
 		data: ["hi zhuangxiangdan"],
@@ -38,8 +39,7 @@ var render=function(ctx,tn,dict){
 	var p=path.join(__dirname, 'templates');
 	p=path.join(p, tn+'.html');
 	console.log(p);
-	var template = swig.compileFile(p);
-	var output = template(dict);
+	var output=nunjucks.render(p, dict);
 	ctx.body=output;
 }
 route.get('/parts/copypack', function(ctx,next) {
